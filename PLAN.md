@@ -63,8 +63,8 @@ ClimaFuse is a high-precision, technical meteorological intelligence platform th
 - [x] Multi-tab views for Model Comparison, Active IMD Bulletins, and Synoptic Insights
 - [x] Implemented All-India Subcontinental Overview & IMD Warning Command Center in [`src/components/NationalOverviewPanel.jsx`](file:///c:/Users/neera/OneDrive/Desktop/ClimaFuse/Climafuse/src/components/NationalOverviewPanel.jsx):
   - Right panel displays subcontinental map telemetry by default instead of a single city
-  - Multi-layer synoptic telemetry readouts for Thermal (28.4°C mean), Precipitation (34.2mm mean, 165mm peak), and Heat Index (41.2°C peak), with interactive layer switching bidirectionally synced to MapLibre heatmaps
-  - Full-India IMD Warning Bulletins aggregating alert tiers (1 Red, 3 Orange, 3 Yellow, 3 Green) across the 10 reference stations with severity filters
+  - Synoptic telemetry readouts for Thermal (28.4°C mean), Precipitation (34.2mm mean, 165mm peak), and Heat Index (41.2°C peak), automatically synced to map HUD controls (eliminating redundant layer switch buttons in right panel)
+  - Full-India IMD Warning Bulletins aggregating alert tiers (1 Red, 3 Orange, 3 Yellow, 3 Green) across the 10 reference stations with severity filters and expanded view fitting 5 station cards simultaneously with smooth internal scrolling
   - Seamless navigation: clicking any city card in the list or any city marker on the map immediately opens that station's detailed telemetry in [`StationTelemetryPanel.jsx`](file:///c:/Users/neera/OneDrive/Desktop/ClimaFuse/Climafuse/src/components/StationTelemetryPanel.jsx)
   - Dedicated `← All-India Overview` header button in [`StationTelemetryPanel.jsx`](file:///c:/Users/neera/OneDrive/Desktop/ClimaFuse/Climafuse/src/components/StationTelemetryPanel.jsx) to smoothly return to the national overview at any time
 
