@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import DashboardNavDock from '../components/DashboardNavDock';
 import StationTopBar from '../components/StationTopBar';
 import StationSummaryBanner from '../components/StationSummaryBanner';
 import StationParameterGrid from '../components/StationParameterGrid';
@@ -13,63 +14,13 @@ export default function StationAnalysisPage() {
   const station = getStationAnalysis(cityId);
   const [activeView, setActiveView] = useState('all'); // 'all', 'charts', 'radiosonde'
   const [forecastCycle, setForecastCycle] = useState('Operational Forecast');
-  const navigate = useNavigate();
 
   return (
     <div className="bg-[#0a0a0a] text-[#e5e2e1] antialiased min-h-screen selection:bg-[#2a2a2a] selection:text-white font-sans flex flex-col">
       {/* ────────────────────────────────────────────────────────── */}
       {/* FLOATING VERTICAL ICON-ONLY DOCK (Matches Stitch Design)   */}
       {/* ────────────────────────────────────────────────────────── */}
-      <aside
-        className="fixed top-1/2 -translate-y-1/2 left-3 lg:left-4 z-50 flex flex-col items-center gap-2.5 p-2 rounded-2xl bg-[#121212]/95 border-2 border-white shadow-2xl shadow-black/80 backdrop-blur-md"
-        aria-label="Navigation Dock"
-      >
-        {/* Brand Anchor Mini Icon */}
-        <Link
-          to="/dashboard"
-          className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[#201f1f] transition-colors mb-1"
-          title="ClimaFuse Dashboard"
-        >
-          <img src="/weather.png" alt="ClimaFuse Icon" className="w-7 h-7 object-contain rounded-full shadow-sm ring-1 ring-white/10" />
-        </Link>
-
-        {/* 1. Severe Alerts */}
-        <Link
-          to="/dashboard?tab=alerts"
-          className="flex items-center justify-center w-10 h-10 rounded-lg text-[#a3a3a3] hover:bg-[#201f1f] hover:text-white transition-colors"
-          title="Active Alerts"
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#f97316]">warning</span>
-        </Link>
-
-        {/* 2. Model Analysis / Comparison */}
-        <Link
-          to="/dashboard?tab=comparison"
-          className="flex items-center justify-center w-10 h-10 rounded-lg text-[#a3a3a3] hover:bg-[#201f1f] hover:text-white transition-colors"
-          title="Model Comparison"
-        >
-          <span className="material-symbols-outlined text-[20px]">compare_arrows</span>
-        </Link>
-
-        {/* 3. Station Detail / Station Analysis (ACTIVE) */}
-        <button
-          className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#2a2a2a] text-white border border-[#353534] shadow-inner transition-colors"
-          title="Station Analysis (Active)"
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#4edea3]">travel_explore</span>
-        </button>
-
-        <div className="w-6 h-px bg-white/20 my-1"></div>
-
-        {/* Home / Overview */}
-        <Link
-          to="/"
-          className="flex items-center justify-center w-10 h-10 rounded-lg text-[#8e9192] hover:text-white hover:bg-[#201f1f] transition-colors"
-          title="Platform Landing Page"
-        >
-          <span className="material-symbols-outlined text-[20px]">home</span>
-        </Link>
-      </aside>
+      <DashboardNavDock activeTab="station" />
 
       {/* ────────────────────────────────────────────────────────── */}
       {/* TOP HORIZONTAL UTILITY BAR                                */}
