@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|india\\.geojson|weather\\.png|favicon\\.ico).*)",
       "destination": "/index.html"
     }
   ],

@@ -100,7 +100,7 @@ export default function ModelWeightMap({
 
     // 1. India GeoJSON boundary
     if (!map.getSource('india-boundary')) {
-      const indiaGeojsonUrl = '/india.geojson';
+      const indiaGeojsonUrl = `${import.meta.env.BASE_URL || '/'}india.geojson`.replace(/\/\//g, '/');
       map.addSource('india-boundary', {
         type: 'geojson',
         data: indiaGeojsonUrl,

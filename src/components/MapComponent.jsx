@@ -108,7 +108,7 @@ export const BASEMAPS = {
 
 // Check for optional MapTiler API Key in environment
 const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY;
-const INDIA_GEOJSON_URL = '/india.geojson';
+const INDIA_GEOJSON_URL = `${import.meta.env.BASE_URL || '/'}india.geojson`.replace(/\/\//g, '/');
 if (MAPTILER_KEY) {
   BASEMAPS.maptilerTopo = {
     id: 'maptilerTopo',
