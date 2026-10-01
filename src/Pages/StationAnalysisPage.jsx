@@ -102,11 +102,15 @@ export default function StationAnalysisPage() {
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-white font-medium">ClimaFuse Meteorological Intelligence</span>
             <span>·</span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[10px]">
+              Hackathon PoC Demo
+            </span>
+            <span>·</span>
             <span>IMD {station.name} ({station.awsId}) Telemetry Feed</span>
             <span>·</span>
             <span className="text-emerald-400 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Online &amp; Synchronized
+              Live Telemetry Simulation
             </span>
           </div>
           <div className="flex items-center gap-4">
