@@ -14,7 +14,7 @@ export default function SideNavDock() {
   return (
     <aside
       aria-label="Global System Navigation"
-      className="fixed left-6 top-6 z-50 hidden sm:flex flex-col items-center rounded-full bg-[#111111]/90 backdrop-blur-xl border-2 border-white shadow-2xl shadow-black/80 p-1.5"
+      className="fixed left-6 top-6 z-50 hidden sm:flex flex-col items-center rounded-full bg-[#111111]/90 backdrop-blur-xl border-2 border-[#4edea3] shadow-2xl shadow-black/80 p-1.5"
     >
       {/* Brand Insignia */}
       <Link
@@ -22,14 +22,14 @@ export default function SideNavDock() {
         className="group relative flex items-center justify-center w-10 h-10 rounded-full text-white hover:bg-[#181818] transition-colors duration-150 mb-1"
         aria-label="ClimaFuse Home"
       >
-        <img src="/weather.png" alt="ClimaFuse" className="w-6 h-6 object-contain rounded-full shadow-sm" />
+        <img src="/weather.png" alt="ClimaFuse" className="w-6 h-6 object-contain rounded-full shadow-sm ring-1 ring-[#4edea3]/30" />
         <span className="absolute left-14 px-2.5 py-1 rounded bg-[#181818] border border-[#262626] text-[0.6875rem] font-mono text-[#e5e2e1] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
           ClimaFuse Platform
         </span>
       </Link>
 
       {/* Divider */}
-      <div className="w-5 h-px bg-white/20 mb-1.5" />
+      <div className="w-5 h-px bg-[#4edea3]/30 mb-1.5" />
 
       {/* Navigation Items */}
       <div className="flex flex-col items-center space-y-1">

@@ -81,20 +81,11 @@ export default function NationalOverviewPanel({
   activeOverlay = 'temperature',
   onOverlayChange,
 }) {
-  const [selectedLayerTab, setSelectedLayerTab] = useState(
-    activeOverlay === 'default' ? 'temperature' : activeOverlay
-  );
   const [alertFilter, setAlertFilter] = useState('all'); // 'all', 'severe', 'watch', 'nominal'
 
-  // Sync tab with external overlay changes
-  const currentMetric = LAYER_METRICS[selectedLayerTab] || LAYER_METRICS.temperature;
-
-  const handleLayerSelect = (layerId) => {
-    setSelectedLayerTab(layerId);
-    if (onOverlayChange) {
-      onOverlayChange(layerId);
-    }
-  };
+  // Derive active metric directly from the map HUD selection
+  const activeMetricKey = activeOverlay === 'default' ? 'temperature' : activeOverlay;
+  const currentMetric = LAYER_METRICS[activeMetricKey] || LAYER_METRICS.temperature;
 
   // IMD Alert distribution counts
   const alertCounts = {
@@ -114,140 +105,108 @@ export default function NationalOverviewPanel({
 
   return (
     <aside
-      className="w-full lg:w-[420px] h-full flex flex-col justify-between rounded-2xl bg-[#121212]/95 backdrop-blur-2xl border border-[#262626] p-4 lg:p-5 shadow-2xl overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-[#262626]"
+      className="w-full lg:w-[420px] h-full flex flex-col rounded-2xl bg-[#121212]/95 backdrop-blur-2xl border border-[#262626] p-3.5 lg:p-4 shadow-2xl overflow-hidden space-y-2.5"
       aria-label="All-India Meteorological Overview & Warnings"
     >
       {/* 1. Subcontinental Mesh Header */}
-      <div className="pb-3 border-b border-[#262626]/60">
+      <div className="pb-2 border-b border-[#262626]/60 shrink-0">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-[#4edea3] animate-pulse" />
-              <h2 className="font-['Plus_Jakarta_Sans',sans-serif] text-xl font-bold text-white tracking-tight">
+              <h2 className="font-['Plus_Jakarta_Sans',sans-serif] text-lg font-bold text-white tracking-tight">
                 All-India Synoptic Mesh
               </h2>
             </div>
-            <p className="font-sans text-[11px] text-[#8e9192] mt-1 flex items-center gap-1.5">
+            <p className="font-sans text-[11px] text-[#8e9192] mt-0.5 flex items-center gap-1.5">
               <span>842 IMD AWS Stations</span>
               <span className="text-[#444748] font-mono">·</span>
               <span className="font-mono text-[#4edea3]">0.05° EPS VERONA</span>
             </p>
           </div>
-          <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#1b2a22] border border-[#4edea3]/30 text-[#4edea3] font-semibold">
+          <span className="font-mono text-[9px] px-2 py-0.5 rounded-full bg-[#1b2a22] border border-[#4edea3]/30 text-[#4edea3] font-semibold">
             LIVE MESH
           </span>
         </div>
 
         {/* Synoptic Model Blend Status */}
-        <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-[#181818] border border-[#262626] flex items-center justify-between text-[11px] font-mono">
+        <div className="mt-1.5 px-2.5 py-1 rounded-lg bg-[#181818] border border-[#262626] flex items-center justify-between text-[10px] font-mono">
           <span className="text-[#8e9192]">AI-NWP Consensus Blend</span>
           <span className="text-white font-semibold flex items-center gap-1">
             <span className="text-[#4edea3]">96.4%</span>
-            <span className="text-[#8e9192] text-[10px]">Reliability</span>
+            <span className="text-[#8e9192] text-[9px]">Reliability</span>
           </span>
         </div>
       </div>
 
-      {/* 2. Atmospheric Map Layers & Subcontinental Telemetry */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-[#8e9192] uppercase tracking-wider font-semibold">
-            Atmospheric Map Layers
+      {/* 2. Active Atmospheric Telemetry (Controlled exclusively via Map HUD) */}
+      <div className="space-y-1.5 shrink-0">
+        <div className="flex items-center justify-between px-0.5">
+          <span className="font-mono text-[10px] text-[#8e9192] uppercase tracking-wider font-semibold flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[13px] text-[#4edea3]">{currentMetric.icon}</span>
+            <span>Subcontinental {currentMetric.label} Telemetry</span>
           </span>
-          <span className="font-mono text-[10px] text-[#4edea3]">
-            {activeOverlay === selectedLayerTab ? '● Synced to Map' : 'Click to Plot'}
+          <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-[#181818] border border-[#262626] text-[#4edea3] flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse" />
+            <span>Map Synced</span>
           </span>
-        </div>
-
-        {/* 3 Layer Switcher Buttons (Thermal, Precipitation, Heat Index) */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-[#181818] border border-[#262626]">
-          {[
-            { id: 'temperature', label: 'Thermal', icon: 'thermostat' },
-            { id: 'rainfall', label: 'Precipitation', icon: 'rainy' },
-            { id: 'heatmap', label: 'Heat Index', icon: 'whatshot' },
-          ].map((tab) => {
-            const isSelected = selectedLayerTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => handleLayerSelect(tab.id)}
-                className={`flex items-center justify-center space-x-1 py-1.5 px-2 rounded-lg text-xs font-sans transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-white text-black font-bold shadow-md'
-                    : 'text-[#a3a3a3] hover:text-white hover:bg-[#222]'
-                }`}
-                title={`Display ${tab.label} Map & Telemetry`}
-              >
-                <span className="material-symbols-outlined text-[14px]">{tab.icon}</span>
-                <span className="truncate">{tab.label}</span>
-              </button>
-            );
-          })}
         </div>
 
         {/* Selected Layer Telemetry Card */}
-        <div className="p-3.5 rounded-xl bg-[#181818] border border-[#262626] space-y-2.5 shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#262626]/50 pb-2">
+        <div className="p-2.5 rounded-xl bg-[#181818] border border-[#262626] space-y-1.5 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#262626]/50 pb-1">
             <div>
-              <span className="font-mono text-[10px] text-[#8e9192] uppercase">
-                {currentMetric.title}
-              </span>
-              <div className="flex items-baseline space-x-2 mt-0.5">
-                <span className="font-['Plus_Jakarta_Sans',sans-serif] text-2xl font-bold text-white">
+              <div className="flex items-baseline space-x-2">
+                <span className="font-['Plus_Jakarta_Sans',sans-serif] text-xl font-bold text-white">
                   {currentMetric.mean}
                 </span>
-                <span className="text-xs text-[#a3a3a3] font-mono">National Mean</span>
+                <span className="text-[10px] text-[#a3a3a3] font-mono">National Mean</span>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="font-mono text-[10px] text-[#8e9192] block">National Peak</span>
-              <span className="font-mono text-xs font-bold text-[#f97316]">
-                {currentMetric.peak.val}
-              </span>
-              <span className="font-mono text-[9px] text-[#8e9192] block truncate max-w-[120px]">
+              <div className="flex items-center justify-end gap-1 font-mono text-[11px]">
+                <span className="text-[#8e9192] text-[9px]">Peak:</span>
+                <span className="font-bold text-[#f97316]">{currentMetric.peak.val}</span>
+              </div>
+              <span className="font-mono text-[9px] text-[#8e9192] block truncate max-w-[150px]">
                 {currentMetric.peak.location}
               </span>
             </div>
           </div>
 
           {/* Regional Microclimate Highlights */}
-          <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
+          <div className="grid grid-cols-3 gap-1 text-center font-mono">
             {currentMetric.highlights.map((h, i) => (
-              <div key={i} className="p-1.5 rounded-lg bg-[#201f1f] border border-[#262626]">
-                <span className="text-[9px] text-[#8e9192] block truncate">{h.label}</span>
-                <span className="text-xs font-bold text-white block mt-0.5">{h.val}</span>
-                <span className="text-[9px] text-[#4edea3] block">{h.status}</span>
+              <div key={i} className="p-1 rounded-md bg-[#201f1f] border border-[#262626]">
+                <span className="text-[8.5px] text-[#8e9192] block truncate">{h.label}</span>
+                <span className="text-[11px] font-bold text-white block mt-0.5">{h.val}</span>
+                <span className="text-[8.5px] text-[#4edea3] block">{h.status}</span>
               </div>
             ))}
           </div>
 
           {/* Layer Gradient Scale Bar */}
-          <div className="pt-1">
-            <div className="flex justify-between items-center text-[10px] font-mono text-[#8e9192] mb-1">
+          <div className="pt-0.5">
+            <div className="flex justify-between items-center text-[9px] font-mono text-[#8e9192] mb-0.5">
               <span>{currentMetric.scaleMin}</span>
               <span className="text-[#a3a3a3]">{currentMetric.label} Gradient</span>
               <span>{currentMetric.scaleMax}</span>
             </div>
             <div
-              className={`w-full h-2 rounded-full bg-gradient-to-r ${currentMetric.gradientCss} border border-white/20`}
+              className={`w-full h-1.5 rounded-full bg-gradient-to-r ${currentMetric.gradientCss} border border-white/20`}
             />
           </div>
-
-          {/* Synoptic Meteorological Dynamics */}
-          <p className="font-sans text-[11px] text-[#a3a3a3] leading-relaxed pt-1 border-t border-[#262626]/40">
-            {currentMetric.gradient}
-          </p>
         </div>
       </div>
 
       {/* 3. All-India IMD Warning Bulletins & City Alert Tiers */}
-      <div className="space-y-2.5 flex-1 flex flex-col min-h-0">
-        <div className="flex items-center justify-between">
+      <div className="space-y-1.5 flex-1 flex flex-col min-h-0">
+        <div className="flex items-center justify-between px-0.5 shrink-0">
           <div className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[15px] text-[#f97316]">warning</span>
+            <span className="material-symbols-outlined text-[14px] text-[#f97316]">warning</span>
             <span className="font-mono text-[10px] text-[#8e9192] uppercase tracking-wider font-semibold">
-              IMD Warning Bulletins ({cities.length} Reference Stations)
+              IMD Bulletins ({cities.length} Stations)
             </span>
           </div>
           <span className="font-mono text-[10px] text-[#ef4444] font-semibold">
@@ -256,60 +215,60 @@ export default function NationalOverviewPanel({
         </div>
 
         {/* Severity Distribution Pills */}
-        <div className="grid grid-cols-4 gap-1 text-center font-mono text-[10px]">
+        <div className="grid grid-cols-4 gap-1 text-center font-mono text-[10px] shrink-0">
           <div
             onClick={() => setAlertFilter(alertFilter === 'severe' ? 'all' : 'severe')}
-            className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+            className={`p-1 rounded-lg border cursor-pointer transition-all ${
               alertFilter === 'severe'
                 ? 'bg-[#ef4444]/25 border-[#ef4444] text-white shadow-sm'
                 : 'bg-[#181818] border-[#ef4444]/40 text-[#ef4444] hover:bg-[#201515]'
             }`}
           >
-            <span className="font-bold block">{alertCounts.red} RED</span>
-            <span className="text-[9px] text-[#8e9192]">Warning</span>
+            <span className="font-bold block text-[10px]">{alertCounts.red} RED</span>
+            <span className="text-[8.5px] text-[#8e9192]">Warning</span>
           </div>
 
           <div
             onClick={() => setAlertFilter(alertFilter === 'severe' ? 'all' : 'severe')}
-            className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+            className={`p-1 rounded-lg border cursor-pointer transition-all ${
               alertFilter === 'severe'
                 ? 'bg-[#f97316]/25 border-[#f97316] text-white shadow-sm'
                 : 'bg-[#181818] border-[#f97316]/40 text-[#f97316] hover:bg-[#221810]'
             }`}
           >
-            <span className="font-bold block">{alertCounts.orange} ORANGE</span>
-            <span className="text-[9px] text-[#8e9192]">Alert</span>
+            <span className="font-bold block text-[10px]">{alertCounts.orange} ORANGE</span>
+            <span className="text-[8.5px] text-[#8e9192]">Alert</span>
           </div>
 
           <div
             onClick={() => setAlertFilter(alertFilter === 'watch' ? 'all' : 'watch')}
-            className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+            className={`p-1 rounded-lg border cursor-pointer transition-all ${
               alertFilter === 'watch'
                 ? 'bg-[#fbbf24]/25 border-[#fbbf24] text-white shadow-sm'
                 : 'bg-[#181818] border-[#fbbf24]/40 text-[#fbbf24] hover:bg-[#201d12]'
             }`}
           >
-            <span className="font-bold block">{alertCounts.yellow} YELLOW</span>
-            <span className="text-[9px] text-[#8e9192]">Watch</span>
+            <span className="font-bold block text-[10px]">{alertCounts.yellow} YELLOW</span>
+            <span className="text-[8.5px] text-[#8e9192]">Watch</span>
           </div>
 
           <div
             onClick={() => setAlertFilter(alertFilter === 'nominal' ? 'all' : 'nominal')}
-            className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+            className={`p-1 rounded-lg border cursor-pointer transition-all ${
               alertFilter === 'nominal'
                 ? 'bg-[#10b981]/25 border-[#10b981] text-white shadow-sm'
                 : 'bg-[#181818] border-[#10b981]/40 text-[#10b981] hover:bg-[#122018]'
             }`}
           >
-            <span className="font-bold block">{alertCounts.green} GREEN</span>
-            <span className="text-[9px] text-[#8e9192]">Normal</span>
+            <span className="font-bold block text-[10px]">{alertCounts.green} GREEN</span>
+            <span className="text-[8.5px] text-[#8e9192]">Normal</span>
           </div>
         </div>
 
         {/* Filter Reset / Count Row */}
-        <div className="flex items-center justify-between text-[11px] font-mono text-[#8e9192] px-1">
+        <div className="flex items-center justify-between text-[10px] font-mono text-[#8e9192] px-1 shrink-0">
           <span>
-            Showing <strong className="text-white">{filteredCities.length}</strong> stations
+            Showing <strong className="text-white">{filteredCities.length}</strong> stations (5 in view)
           </span>
           {alertFilter !== 'all' && (
             <button
@@ -321,13 +280,14 @@ export default function NationalOverviewPanel({
           )}
         </div>
 
-        {/* Interactive Clickable City Warning Cards List */}
-        <div className="space-y-2 overflow-y-auto max-h-[300px] lg:max-h-[360px] pr-1 scrollbar-thin scrollbar-thumb-[#262626]">
+        {/* Interactive Clickable City Warning Cards List — Fits 5 stations simultaneously */}
+        <div className="flex-1 min-h-0 space-y-1.5 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[#262626]">
           {filteredCities.map((city) => (
             <div
               key={city.id}
               onClick={() => onSelectCity && onSelectCity(city)}
-              className="group p-3 rounded-xl bg-[#181818] hover:bg-[#202020] border border-[#262626] hover:border-white/40 transition-all cursor-pointer shadow-sm relative overflow-hidden"
+              className="group p-2 rounded-xl bg-[#181818] hover:bg-[#202020] border border-[#262626] hover:border-white/40 transition-all cursor-pointer shadow-sm relative overflow-hidden flex flex-col justify-between"
+              style={{ minHeight: '56px' }}
               title={`Click to open full station telemetry for ${city.name}`}
             >
               {/* Left Color Severity Pip Strip */}
@@ -336,70 +296,64 @@ export default function NationalOverviewPanel({
                 style={{ backgroundColor: city.alertColor }}
               />
 
-              {/* Station Card Header */}
-              <div className="flex items-start justify-between pl-1">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: city.alertColor,
-                        animation:
-                          city.alertTier === 'Red' || city.alertTier === 'Orange'
-                            ? 'pulse 1.8s infinite'
-                            : 'none',
-                      }}
-                    />
-                    <span className="font-['Plus_Jakarta_Sans',sans-serif] text-sm font-bold text-white group-hover:text-[#4edea3] transition-colors">
-                      {city.name}
-                    </span>
-                    <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#252525] text-[#8e9192]">
-                      {city.awsId}
-                    </span>
-                  </div>
-                  <p className="font-sans text-[11px] text-[#8e9192] pl-4 mt-0.5 truncate max-w-[210px]">
-                    {city.state}
-                  </p>
+              {/* Station Card Row 1: Name, AWS, State, Icon, Temp */}
+              <div className="flex items-center justify-between pl-1.5">
+                <div className="flex items-center space-x-1.5 min-w-0">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: city.alertColor,
+                      animation:
+                        city.alertTier === 'Red' || city.alertTier === 'Orange'
+                          ? 'pulse 1.8s infinite'
+                          : 'none',
+                    }}
+                  />
+                  <span className="font-['Plus_Jakarta_Sans',sans-serif] text-xs font-bold text-white group-hover:text-[#4edea3] transition-colors truncate">
+                    {city.name}
+                  </span>
+                  <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-[#252525] text-[#8e9192] shrink-0">
+                    {city.awsId}
+                  </span>
+                  <span className="font-sans text-[10px] text-[#8e9192] truncate hidden sm:inline">
+                    · {city.state.split(' ')[0]}
+                  </span>
                 </div>
 
                 {/* Temp & Icon */}
-                <div className="text-right">
-                  <div className="flex items-center justify-end space-x-1">
-                    <span className="material-symbols-outlined text-[16px] text-white">
-                      {city.icon}
-                    </span>
-                    <span className="font-mono text-sm font-bold text-white">
-                      {city.temp}°C
-                    </span>
-                  </div>
-                  <span className="font-mono text-[10px] text-[#8e9192] block">
-                    Δ {city.delta.split(' ')[1]}
+                <div className="flex items-center space-x-1.5 shrink-0 pl-2">
+                  <span className="material-symbols-outlined text-[14px] text-white">
+                    {city.icon}
+                  </span>
+                  <span className="font-mono text-xs font-bold text-white">
+                    {city.temp}°C
+                  </span>
+                  <span className="font-mono text-[9px] text-[#8e9192]">
+                    {city.delta.split(' ')[1]}
                   </span>
                 </div>
               </div>
 
-              {/* IMD Bulletin Description */}
-              <div className="mt-2 pl-1 pt-1.5 border-t border-[#262626]/40 flex items-center justify-between">
-                <div className="min-w-0 pr-2">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="font-mono text-[9px] font-bold uppercase tracking-wider px-1 rounded"
-                      style={{
-                        backgroundColor: `${city.alertColor}20`,
-                        color: city.alertColor,
-                      }}
-                    >
-                      {city.alertTier}
-                    </span>
-                    <span className="font-sans text-[11px] text-[#d4d4d4] truncate block">
-                      {city.alertDesc}
-                    </span>
-                  </div>
+              {/* Station Card Row 2: Alert Tier, Description snippet, Telemetry arrow */}
+              <div className="flex items-center justify-between pl-1.5 pt-1 border-t border-[#262626]/30 mt-1">
+                <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                  <span
+                    className="font-mono text-[8.5px] font-bold uppercase tracking-wider px-1 py-0.2 rounded shrink-0"
+                    style={{
+                      backgroundColor: `${city.alertColor}20`,
+                      color: city.alertColor,
+                    }}
+                  >
+                    {city.alertTier}
+                  </span>
+                  <span className="font-sans text-[10px] text-[#d4d4d4] truncate block">
+                    {city.alertDesc}
+                  </span>
                 </div>
 
-                <div className="shrink-0 flex items-center text-[#8e9192] group-hover:text-white group-hover:translate-x-0.5 transition-all font-mono text-[10px]">
-                  <span>Telemetry</span>
-                  <span className="material-symbols-outlined text-[13px] ml-0.5">
+                <div className="shrink-0 flex items-center text-[#8e9192] group-hover:text-white group-hover:translate-x-0.5 transition-all font-mono text-[9px]">
+                  <span>View</span>
+                  <span className="material-symbols-outlined text-[11px] ml-0.5">
                     arrow_forward
                   </span>
                 </div>
@@ -410,10 +364,10 @@ export default function NationalOverviewPanel({
       </div>
 
       {/* 4. Bottom Information & Action Bar */}
-      <div className="pt-2 border-t border-[#262626]/60">
-        <div className="p-2.5 rounded-xl bg-[#181818]/60 border border-[#262626]/40 flex items-center justify-between text-[11px] font-mono text-[#8e9192]">
+      <div className="pt-1.5 border-t border-[#262626]/60 shrink-0">
+        <div className="p-2 rounded-xl bg-[#181818]/60 border border-[#262626]/40 flex items-center justify-between text-[10px] font-mono text-[#8e9192]">
           <span className="flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[14px] text-[#4edea3]">touch_app</span>
+            <span className="material-symbols-outlined text-[13px] text-[#4edea3]">touch_app</span>
             <span>Click any station or map node for radiosonde</span>
           </span>
           <span className="text-[#a3a3a3]">10 Cities Active</span>

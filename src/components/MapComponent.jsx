@@ -142,8 +142,6 @@ export default function MapComponent({
   const markersRef = useRef([]);
   const [currentBasemap, setCurrentBasemap] = useState(basemapId);
   const [currentOverlay, setCurrentOverlay] = useState(layerType);
-  const currentOverlayRef = useRef(layerType);
-  const popupRef = useRef(null);
   const [cursorCoords, setCursorCoords] = useState({ lat: '22.80', lng: '79.20' });
 
   const isLanding = variant === 'landing';
@@ -158,19 +156,18 @@ export default function MapComponent({
   // Keep local overlay in sync if prop changes
   useEffect(() => {
     setCurrentOverlay(layerType);
-    currentOverlayRef.current = layerType;
   }, [layerType]);
 
   // Helper to attach India boundary and atmospheric telemetry layers to current style
   const attachOverlays = (map, activeBasemapKey) => {
-    if (!map || !map.getStyle()) return;
+    if (!map || !map.isStyleLoaded()) return;
 
-    // 1. Load India GeoJSON boundary from /public/india.geojson
+    // 1. Load India GeoJSON boundary from in-memory dataset
     try {
       if (!map.getSource('india-boundary')) {
         map.addSource('india-boundary', {
           type: 'geojson',
-          data: INDIA_GEOJSON_URL,
+          data: INDIA_GEOJSON,
         });
       }
 
@@ -220,7 +217,7 @@ export default function MapComponent({
       console.warn('Atmospheric telemetry source notice:', error);
     }
 
-    // 3. Thermal Heatmap Layer (Calibrated to Empirical Station Telemetry)
+    // 3. Thermal Heatmap Layer (Realistic Meteorological Gradient)
     if (!map.getLayer('thermal-heatmap')) {
       map.addLayer({
         id: 'thermal-heatmap',
@@ -234,42 +231,42 @@ export default function MapComponent({
             'interpolate',
             ['linear'],
             ['get', 'temp'],
-            10, 0.10, // Cool Sky Blue (Himalayas / Leh, 10-18°C)
-            18, 0.28, // Soft Teal / Aquamarine (18-23°C, Srinagar, Shimla)
-            23, 0.44, // Temperate Green (23-27°C, Bengaluru, Pune)
-            28, 0.64, // Golden Yellow (27-31°C, Gangetic Plains, Delhi, Lucknow)
-            32, 0.82, // Warm Amber / Soft Orange (32-35°C, Jaipur, Ahmedabad)
-            36, 1.00, // Crimson Red (Peak Hot Zones >36°C, Thar Desert, Jaisalmer)
+            10, 0.05,
+            18, 0.2,
+            24, 0.4,
+            29, 0.6,
+            34, 0.8,
+            42, 1.0,
           ],
           'heatmap-intensity': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 0.95,
-            5, 1.15,
-            7, 1.45,
+            3, 0.85,
+            5, 1.25,
+            7, 1.8,
           ],
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
-            0.0, 'rgba(0, 0, 0, 0)',
-            0.10, 'rgba(56, 189, 248, 0.50)',  // Cool Sky Blue (10-18°C)
-            0.28, 'rgba(45, 212, 191, 0.65)',  // Soft Teal / Aquamarine (18-23°C)
-            0.44, 'rgba(74, 222, 128, 0.75)',  // Temperate Green (23-27°C)
-            0.64, 'rgba(250, 204, 21, 0.82)',  // Golden Yellow (27-31°C)
-            0.82, 'rgba(251, 146, 60, 0.88)',  // Warm Amber / Soft Orange (31-34°C)
-            1.00, 'rgba(239, 68, 68, 0.95)',   // Crimson Red (Peak Hot Zones >35°C)
+            0, 'rgba(0, 0, 0, 0)',
+            0.1, 'rgba(56, 189, 248, 0.45)',   // Cool Sky Blue (Himalayas / High Altitude, ~10-18°C)
+            0.28, 'rgba(45, 212, 191, 0.62)',  // Soft Teal / Aquamarine (~18-23°C)
+            0.46, 'rgba(74, 222, 128, 0.7)',   // Temperate Green (~23-27°C, Deccan/Plateaus)
+            0.64, 'rgba(250, 204, 21, 0.78)',  // Golden Yellow (~27-31°C, Gangetic Plains)
+            0.82, 'rgba(251, 146, 60, 0.85)',  // Warm Amber / Soft Orange (~32-35°C)
+            1.0, 'rgba(239, 68, 68, 0.92)',    // Crimson Red (Peak Hot Zones ONLY, >36°C, Thar)
           ],
           'heatmap-radius': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 56,
-            5, 90,
-            7, 150,
+            3, 48,
+            5, 85,
+            7, 145,
           ],
-          'heatmap-opacity': 0.78,
+          'heatmap-opacity': 0.72,
         },
       });
     }
@@ -289,41 +286,40 @@ export default function MapComponent({
             ['linear'],
             ['get', 'precipitation'],
             0, 0.0,
-            5, 0.12,
-            20, 0.32,
-            50, 0.60,
-            90, 0.82,
-            150, 1.0,
+            5, 0.15,
+            20, 0.35,
+            50, 0.65,
+            100, 0.88,
+            160, 1.0,
           ],
           'heatmap-intensity': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 0.95,
-            5, 1.15,
-            7, 1.45,
+            3, 0.85,
+            5, 1.25,
+            7, 1.8,
           ],
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
-            0.0, 'rgba(0, 0, 0, 0)',
-            0.10, 'rgba(186, 230, 253, 0.38)', // Trace mist / light drizzle (0-5 mm)
-            0.30, 'rgba(56, 189, 248, 0.62)',  // Light blue (5-20 mm)
-            0.55, 'rgba(14, 165, 233, 0.78)',  // Ocean blue (20-50 mm)
-            0.75, 'rgba(37, 99, 235, 0.88)',   // Deep blue (50-90 mm)
-            0.90, 'rgba(79, 70, 229, 0.95)',   // Indigo / Storm peak (90-140 mm, Konkan)
-            1.00, 'rgba(168, 85, 247, 0.98)',  // Intense Monsoon Purple (140+ mm, Cherrapunji)
+            0, 'rgba(0, 0, 0, 0)',
+            0.1, 'rgba(186, 230, 253, 0.4)',  // Trace mist / light drizzle (0-5 mm)
+            0.3, 'rgba(56, 189, 248, 0.62)',  // Light blue (5-20 mm)
+            0.55, 'rgba(14, 165, 233, 0.76)', // Ocean blue (20-50 mm)
+            0.78, 'rgba(37, 99, 235, 0.86)',  // Deep blue (50-100 mm)
+            1.0, 'rgba(79, 70, 229, 0.95)',   // Indigo / Storm peak (100+ mm, Western Ghats/Meghalaya)
           ],
           'heatmap-radius': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 52,
-            5, 85,
-            7, 140,
+            3, 44,
+            5, 80,
+            7, 135,
           ],
-          'heatmap-opacity': 0.78,
+          'heatmap-opacity': 0.72,
         },
       });
     }
@@ -343,45 +339,45 @@ export default function MapComponent({
             ['linear'],
             ['get', 'heatIndex'],
             12, 0.05,
-            22, 0.20,
-            28, 0.42,
-            34, 0.68,
-            39, 0.88,
-            44, 1.0,
+            20, 0.18,
+            28, 0.4,
+            34, 0.65,
+            40, 0.88,
+            48, 1.0,
           ],
           'heatmap-intensity': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 0.95,
-            5, 1.15,
-            7, 1.45,
+            3, 0.85,
+            5, 1.25,
+            7, 1.8,
           ],
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
-            0.0, 'rgba(0, 0, 0, 0)',
-            0.12, 'rgba(52, 211, 153, 0.42)', // Mint Emerald (Safe / Comfortable, <24°C, Bengaluru)
-            0.38, 'rgba(250, 204, 21, 0.70)', // Golden Yellow (Caution, 25-32°C, Delhi)
-            0.64, 'rgba(251, 146, 60, 0.84)', // Amber Orange (Extreme Caution, 33-37°C, Jaisalmer)
-            0.85, 'rgba(239, 68, 68, 0.92)',  // Coral Crimson (Danger, 38-42°C, Mumbai/Chennai)
-            1.00, 'rgba(168, 85, 247, 0.98)', // Purple Violet (Extreme Danger, >43°C)
+            0, 'rgba(0, 0, 0, 0)',
+            0.14, 'rgba(52, 211, 153, 0.42)', // Mint Emerald (Safe / Comfortable, <24°C)
+            0.36, 'rgba(250, 204, 21, 0.68)', // Golden Yellow (Caution, 25-32°C)
+            0.6, 'rgba(251, 146, 60, 0.82)',  // Amber Orange (Extreme Caution, 33-38°C)
+            0.82, 'rgba(239, 68, 68, 0.9)',   // Coral Crimson (Danger, 39-44°C)
+            1.0, 'rgba(168, 85, 247, 0.96)',  // Purple Violet (Extreme Danger, >45°C)
           ],
           'heatmap-radius': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 56,
-            5, 90,
-            7, 150,
+            3, 48,
+            5, 85,
+            7, 145,
           ],
-          'heatmap-opacity': 0.78,
+          'heatmap-opacity': 0.72,
         },
       });
     }
 
-    // 6. Observation Station Data Points (Data-Driven Illuminated Nodes)
+    // 6. Observation Station Data Points (Subtle Illuminated Data Nodes)
     if (!map.getLayer('atmospheric-points')) {
       map.addLayer({
         id: 'atmospheric-points',
@@ -395,24 +391,14 @@ export default function MapComponent({
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 3.2,
-            5, 4.5,
-            7, 6.5,
+            3, 2.5,
+            5, 3.5,
+            7, 5,
           ],
-          'circle-color': [
-            'interpolate',
-            ['linear'],
-            ['get', 'temp'],
-            10, '#38bdf8',
-            18, '#2dd4bf',
-            23, '#4ade80',
-            28, '#facc15',
-            32, '#fb923c',
-            35, '#ef4444',
-          ],
-          'circle-stroke-width': 1.5,
-          'circle-stroke-color': '#0a0a0a',
-          'circle-opacity': 0.95,
+          'circle-color': '#ffffff',
+          'circle-stroke-width': 1,
+          'circle-stroke-color': '#111111',
+          'circle-opacity': 0.85,
         },
       });
     }
@@ -479,59 +465,6 @@ export default function MapComponent({
       });
     });
 
-    // Interactive telemetry tooltip on observation points
-    const popup = new maplibregl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      offset: 8,
-      className: 'meteorological-hud-popup',
-    });
-    popupRef.current = popup;
-
-    map.on('mouseenter', 'atmospheric-points', (e) => {
-      if (!e.features || !e.features.length) return;
-      map.getCanvas().style.cursor = 'pointer';
-      const feature = e.features[0];
-      const coords = feature.geometry.coordinates.slice();
-      const props = feature.properties;
-      const activeL = currentOverlayRef.current;
-
-      let valText = `${props.temp}°C`;
-      let valLabel = 'Thermal (2m T)';
-      let badgeColor = '#4edea3';
-
-      if (activeL === 'rainfall') {
-        valText = `${props.precipitation} mm`;
-        valLabel = '24h Precipitation';
-        badgeColor = props.precipitation > 80 ? '#a855f7' : props.precipitation > 40 ? '#38bdf8' : '#94a3b8';
-      } else if (activeL === 'heatmap') {
-        valText = `${props.heatIndex}°C HI`;
-        valLabel = 'Heat Index Stress';
-        badgeColor = props.heatIndex > 38 ? '#ef4444' : props.heatIndex > 32 ? '#fbbf24' : '#4edea3';
-      } else {
-        badgeColor = props.temp >= 35 ? '#ef4444' : props.temp >= 31 ? '#fb923c' : props.temp >= 27 ? '#facc15' : props.temp >= 22 ? '#4ade80' : '#38bdf8';
-      }
-
-      popup
-        .setLngLat(coords)
-        .setHTML(`
-          <div style="background: rgba(14, 14, 14, 0.95); border: 1px solid #333; padding: 7px 11px; border-radius: 9px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.85); backdrop-filter: blur(8px); min-width: 140px;">
-            <div style="font-weight: 700; color: #fff; font-size: 12px; margin-bottom: 1px;">${props.name}</div>
-            <div style="font-size: 9.5px; color: #8e9192; margin-bottom: 5px;">${props.region}</div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid #262626; padding-top: 4px;">
-              <span style="font-size: 10px; color: #a3a3a3;">${valLabel}</span>
-              <span style="font-weight: 700; color: ${badgeColor}; font-size: 12px;">${valText}</span>
-            </div>
-          </div>
-        `)
-        .addTo(map);
-    });
-
-    map.on('mouseleave', 'atmospheric-points', () => {
-      map.getCanvas().style.cursor = '';
-      popup.remove();
-    });
-
     // ResizeObserver ensures container resizing recalculates map canvas cleanly
     const resizeObserver = new ResizeObserver(() => {
       if (mapRef.current) {
@@ -543,7 +476,6 @@ export default function MapComponent({
     }
 
     return () => {
-      popup.remove();
       resizeObserver.disconnect();
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
@@ -551,8 +483,14 @@ export default function MapComponent({
     };
   }, []);
 
-  // Switch basemap style when currentBasemap changes
+  const isInitialBasemapMount = useRef(true);
+
+  // Switch basemap style when currentBasemap changes (skipping initial mount)
   useEffect(() => {
+    if (isInitialBasemapMount.current) {
+      isInitialBasemapMount.current = false;
+      return;
+    }
     const map = mapRef.current;
     if (!map) return;
 
@@ -572,13 +510,17 @@ export default function MapComponent({
     const map = mapRef.current;
     if (!map) return;
 
-    if (!map.getLayer('thermal-heatmap')) {
-      if (map.getStyle()) {
+    if (map.isStyleLoaded()) {
+      if (!map.getLayer('thermal-heatmap')) {
         attachOverlays(map, currentBasemap);
       }
+      applyMeteorologicalLayer(map, currentOverlay);
+    } else {
+      map.once('load', () => {
+        attachOverlays(map, currentBasemap);
+        applyMeteorologicalLayer(map, currentOverlay);
+      });
     }
-
-    applyMeteorologicalLayer(map, currentOverlay);
   }, [currentOverlay]);
 
   // Sync DOM Markers for cities
@@ -632,29 +574,24 @@ export default function MapComponent({
           </div>
         `;
       } else {
-        el.className = `group cursor-pointer transition-all duration-200 ${
-          isSelected ? 'z-30 scale-110' : 'z-20 hover:scale-105'
-        }`;
+        el.className = `group cursor-pointer transition-all duration-200 ${isSelected ? 'z-30 scale-110' : 'z-20 hover:scale-105'
+          }`;
 
         el.innerHTML = `
-          <div class="relative flex items-center space-x-1.5 px-2.5 py-1 rounded-full backdrop-blur-md shadow-xl transition-all whitespace-nowrap ${
-            isSelected
-              ? 'bg-[#181818] border-2 border-white'
-              : 'bg-[#111111]/90 border border-[#353534] hover:border-white'
+          <div class="relative flex items-center space-x-1.5 px-2.5 py-1 rounded-full backdrop-blur-md shadow-xl transition-all whitespace-nowrap ${isSelected
+            ? 'bg-[#181818] border-2 border-white'
+            : 'bg-[#111111]/90 border border-[#353534] hover:border-white'
           }">
-            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${city.alertColor}; ${
-              city.alertTier === 'Red'
-                ? 'animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;'
-                : ''
-            }"></span>
+            <span class="w-2 h-2 rounded-full shrink-0" style="background-color: ${city.alertColor}; ${city.alertTier === 'Red'
+            ? 'animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;'
+            : ''
+          }"></span>
             <span class="font-mono text-xs font-semibold text-white">${city.name}</span>
             <span class="font-mono text-[11px] text-[#a3a3a3]">${city.temp}°</span>
-            <span class="material-symbols-outlined text-[13px] ${
-              isSelected ? 'text-white' : 'text-[#8e9192]'
-            }">${city.icon}</span>
+            <span class="material-symbols-outlined text-[13px] ${isSelected ? 'text-white' : 'text-[#8e9192]'
+          }">${city.icon}</span>
           </div>
-          <div class="w-2 h-2 rounded-full mx-auto mt-0.5 ${
-            isSelected ? 'bg-white ring-2 ring-white/50' : 'bg-[#e5e2e1] ring-1 ring-black/40'
+          <div class="w-2 h-2 rounded-full mx-auto mt-0.5 ${isSelected ? 'bg-white ring-2 ring-white/50' : 'bg-[#e5e2e1] ring-1 ring-black/40'
           }"></div>
         `;
       }
@@ -728,7 +665,7 @@ export default function MapComponent({
     );
   }
 
-  // --- RENDER VARIANT: DASHBOARD WORKSTATION ---
+  // ---  VARIANT: DASHBOARD WORKSTATION ---
   return (
     <div className="relative w-full h-full min-h-[500px] overflow-hidden rounded-2xl bg-[#0e0e0e] border border-[#262626]/70 shadow-2xl flex flex-col">
       {/* MapLibre GL DOM Container */}
@@ -776,11 +713,10 @@ export default function MapComponent({
             key={b.id}
             onClick={() => handleBasemapSelect(b.id)}
             title={b.description}
-            className={`flex items-center space-x-1.5 px-3 py-1 rounded-full font-sans text-[11px] transition-all cursor-pointer ${
-              currentBasemap === b.id
-                ? 'bg-white text-[#0a0a0a] font-semibold shadow-sm'
-                : 'text-[#a3a3a3] hover:text-white hover:bg-[#201f1f] font-normal'
-            }`}
+            className={`flex items-center space-x-1.5 px-3 py-1 rounded-full font-sans text-[11px] transition-all cursor-pointer ${currentBasemap === b.id
+              ? 'bg-white text-[#0a0a0a] font-semibold shadow-sm'
+              : 'text-[#a3a3a3] hover:text-white hover:bg-[#201f1f] font-normal'
+              }`}
           >
             <span className="material-symbols-outlined text-[14px]">{b.icon}</span>
             <span>{b.label}</span>
@@ -803,11 +739,10 @@ export default function MapComponent({
               setCurrentOverlay(ov.id);
               if (onLayerChange) onLayerChange(ov.id);
             }}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded-full font-sans text-[11px] transition-all cursor-pointer ${
-              currentOverlay === ov.id
-                ? 'bg-white text-[#0a0a0a] font-semibold shadow-sm'
-                : 'text-[#a3a3a3] hover:text-white hover:bg-[#201f1f] font-normal'
-            }`}
+            className={`flex items-center space-x-1 px-2.5 py-1 rounded-full font-sans text-[11px] transition-all cursor-pointer ${currentOverlay === ov.id
+              ? 'bg-white text-[#0a0a0a] font-semibold shadow-sm'
+              : 'text-[#a3a3a3] hover:text-white hover:bg-[#201f1f] font-normal'
+              }`}
           >
             <span className="material-symbols-outlined text-[13px]">{ov.icon}</span>
             <span>{ov.label}</span>
@@ -870,42 +805,9 @@ function applyMeteorologicalLayer(map, layerType) {
   }
   if (pointsLayer) {
     map.setLayoutProperty('atmospheric-points', 'visibility', layerType !== 'default' ? 'visible' : 'none');
-    if (layerType === 'temperature') {
-      map.setPaintProperty('atmospheric-points', 'circle-color', [
-        'interpolate',
-        ['linear'],
-        ['get', 'temp'],
-        10, '#38bdf8', // 10°C Cool Sky Blue (Leh, Himalayas)
-        18, '#2dd4bf', // 18°C Soft Teal (Srinagar, Shimla)
-        23, '#4ade80', // 23°C Temperate Green (Bengaluru, Pune)
-        28, '#facc15', // 28°C Golden Yellow (Delhi, Lucknow, Kolkata)
-        32, '#fb923c', // 32°C Amber Orange (Jaipur, Mumbai)
-        35, '#ef4444', // 35°C+ Crimson Red (Ahmedabad, Jaisalmer)
-      ]);
-    } else if (layerType === 'rainfall') {
-      map.setPaintProperty('atmospheric-points', 'circle-color', [
-        'interpolate',
-        ['linear'],
-        ['get', 'precipitation'],
-        0, '#64748b',   // Dry (0 mm)
-        5, '#38bdf8',   // Light drizzle (5 mm)
-        20, '#0284c7',  // Ocean blue (20 mm)
-        50, '#1d4ed8',  // Deep blue (50 mm)
-        90, '#6366f1',  // Indigo / Storm (90 mm, Konkan)
-        140, '#a855f7', // Intense Purple (140+ mm, Cherrapunji)
-      ]);
-    } else if (layerType === 'heatmap') {
-      map.setPaintProperty('atmospheric-points', 'circle-color', [
-        'interpolate',
-        ['linear'],
-        ['get', 'heatIndex'],
-        15, '#38bdf8', // Safe Cool Blue (<18°C)
-        24, '#4ade80', // Normal Safe Green (18-26°C, Bengaluru)
-        31, '#facc15', // Caution Yellow (27-32°C, Delhi)
-        36, '#fb923c', // Extreme Caution Orange (33-37°C, Jaisalmer)
-        40, '#ef4444', // Danger Crimson Red (38-42°C, Mumbai, Coastal)
-        45, '#a855f7', // Extreme Danger Purple (>43°C)
-      ]);
+    if (layerType !== 'default') {
+      const dotColor = layerType === 'rainfall' ? '#38bdf8' : layerType === 'heatmap' ? '#f97316' : '#4edea3';
+      map.setPaintProperty('atmospheric-points', 'circle-color', dotColor);
     }
   }
 

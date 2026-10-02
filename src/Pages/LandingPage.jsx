@@ -287,33 +287,36 @@ export default function LandingPage() {
           <BentoGrid />
         </section>
 
-        {/* BOTTOM CALLOUT BANNER */}
+        {/* BOTTOM CALLOUT BANNER — HACKATHON DEMO PROTOTYPE */}
         <section className="py-16 max-w-7xl mx-auto">
           <div className="rounded-3xl bg-[#181818] p-8 md:p-12 border border-[#262626] flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
             <div className="max-w-2xl relative z-10">
-              <div className="font-mono text-[0.6875rem] text-[#4edea3] uppercase tracking-wider mb-2 font-medium">
-                RESEARCH &amp; OPERATIONAL ACCESS
+              <div className="inline-flex items-center gap-2 font-mono text-[0.6875rem] text-[#4edea3] uppercase tracking-wider mb-2 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3] animate-pulse"></span>
+                <span>HACKATHON SELECTION ROUND · PROTOTYPE DEMO</span>
               </div>
               <h3 className="font-['Plus_Jakarta_Sans',sans-serif] text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
-                Deploy ClimaFuse for your region or enterprise.
+                Explore the ClimaFuse Live Interactive Prototype.
               </h3>
-              <p className="font-sans text-[0.9375rem] text-[#a3a3a3]">
-                Incorporate calibrated sub-seasonal and synoptic multi-model forecasts into power grid scheduling, aviation corridors, and agrarian water management.
+              <p className="font-sans text-[0.9375rem] text-[#a3a3a3] leading-relaxed">
+                Built as a proof-of-concept demonstration for the hackathon jury and selection committee. Experience how real-time Bayesian Model Averaging (BMA) blends ECMWF physics (IFS) with neural AI models (AIFS) against IMD ground truth across 840+ Indian weather stations.
               </p>
             </div>
-            <div className="flex items-center gap-4 relative z-10 shrink-0">
+            <div className="flex flex-wrap items-center gap-3.5 relative z-10 shrink-0">
               <Link
-                className="px-6 py-3 rounded-full bg-white text-[#0a0a0a] font-sans text-[0.9375rem] font-semibold hover:bg-[#e2e2e2] transition-all cursor-pointer shadow-md"
+                className="px-6 py-3 rounded-full bg-white text-[#0a0a0a] font-sans text-[0.9375rem] font-semibold hover:bg-[#e2e2e2] transition-all cursor-pointer shadow-md flex items-center gap-2 group"
                 to="/dashboard"
               >
-                Access Portal
+                <span>Launch Interactive Dashboard</span>
+                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
               </Link>
-              <a
-                className="px-5 py-3 rounded-full bg-[#111111] border border-[#262626] text-white font-sans text-[0.9375rem] hover:bg-[#222222] transition-all cursor-pointer"
-                href="#product"
+              <Link
+                className="px-5 py-3 rounded-full bg-[#111111] border border-[#262626] text-white font-sans text-[0.9375rem] hover:bg-[#222222] transition-all cursor-pointer flex items-center gap-2"
+                to="/station/delhi"
               >
-                Read Whitepaper
-              </a>
+                <span className="material-symbols-outlined text-[18px] text-amber-400">show_chart</span>
+                <span>Inspect Station Analysis</span>
+              </Link>
             </div>
           </div>
         </section>
@@ -324,15 +327,20 @@ export default function LandingPage() {
             <div className="flex items-center gap-3">
               <img src="/weather.png" alt="ClimaFuse Icon" className="w-8 h-8 object-contain rounded-full shadow-sm ring-1 ring-white/10" />
               <div>
-                <div className="font-['Plus_Jakarta_Sans',sans-serif] text-lg font-bold text-white tracking-tight">
-                  ClimaFuse
+                <div className="font-['Plus_Jakarta_Sans',sans-serif] text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                  <span>ClimaFuse</span>
+                  <span className="font-mono text-[10px] text-[#4edea3] bg-[#4edea3]/10 border border-[#4edea3]/30 px-2 py-0.5 rounded-full font-medium">
+                    Hackathon Demo
+                  </span>
                 </div>
-                <div className="font-mono text-[0.6875rem] text-[#8e9192]">AI-NWP Platform for India</div>
+                <div className="font-mono text-[0.6875rem] text-[#8e9192]">
+                  AI-NWP Meteorological Synthesis Platform · Selection Round PoC
+                </div>
               </div>
             </div>
-            <nav className="flex flex-wrap items-center gap-6 font-sans text-[0.8125rem] text-[#a3a3a3]">
+            <nav className="flex flex-wrap items-center gap-5 sm:gap-6 font-sans text-[0.8125rem] text-[#a3a3a3]">
               <a className="hover:text-white transition-colors" href="#product">
-                Product
+                Capabilities
               </a>
               <a className="hover:text-white transition-colors" href="#how-it-works">
                 Methodology
@@ -341,23 +349,29 @@ export default function LandingPage() {
                 Coverage
               </a>
               <a className="hover:text-white transition-colors" href="#outputs">
-                Documentation
+                Architecture
               </a>
-              <Link className="hover:text-white transition-colors" to="/dashboard">
-                Dashboard
+              <Link className="hover:text-white transition-colors text-white font-medium" to="/dashboard">
+                Interactive Dashboard
+              </Link>
+              <Link className="hover:text-amber-300 transition-colors text-amber-400 font-medium" to="/station/delhi">
+                Station Deep-Dive
               </Link>
             </nav>
           </div>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-6 border-t border-[#262626]/30 font-mono text-[0.6875rem] text-[#8e9192]">
             <div>
-              ClimaFuse · Hybrid Meteorological Synthesis · Built with IMD AWS &amp; ECMWF Open Telemetry.
+              ClimaFuse · Hackathon Selection Round Prototype · Open-Data Ground Truth via IMD AWS &amp; ECMWF Open Telemetry.
             </div>
-            <div className="flex items-center gap-4">
-              <span>CRPS Verified</span>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                Evaluation Prototype v1.0
+              </span>
               <span>•</span>
-              <span>BMA Engine v3.1</span>
+              <span>BMA Ensemble v3.1</span>
               <span>•</span>
-              <span className="text-white">ISO 9001 NWP Compliant</span>
+              <span className="text-white">Non-Commercial PoC</span>
             </div>
           </div>
         </footer>

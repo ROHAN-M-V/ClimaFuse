@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
+import { setWorkerUrl } from 'maplibre-gl';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import {
   WEIGHT_REGIMES,
   LEAD_TIMES,
@@ -8,6 +10,10 @@ import {
   REGIONS_CATALOG,
 } from '../api/modelWeightsData';
 import { BASEMAPS } from './MapComponent';
+import { INDIA_GEOJSON } from '../api/indiaBoundary';
+
+// Ensure MapLibre worker is resolved in Vite builds
+setWorkerUrl(workerUrl);
 
 /**
  * ModelWeightMap
@@ -96,14 +102,13 @@ export default function ModelWeightMap({
 
   // Helper to attach India boundary and Model Weight layers
   const attachWeightLayers = (map, basemapKey, regimeKey, modelKey, leadKey) => {
-    if (!map || !map.getStyle()) return;
+    if (!map || !map.isStyleLoaded()) return;
 
-    // 1. India GeoJSON boundary
+    // 1. India GeoJSON boundary from in-memory dataset
     if (!map.getSource('india-boundary')) {
-      const indiaGeojsonUrl = `${import.meta.env.BASE_URL || '/'}india.geojson`.replace(/\/\//g, '/');
       map.addSource('india-boundary', {
         type: 'geojson',
-        data: indiaGeojsonUrl,
+        data: INDIA_GEOJSON,
       });
     }
 
@@ -288,8 +293,14 @@ export default function ModelWeightMap({
     };
   }, []);
 
-  // Update style when basemap changes
+  const isInitialBasemapMount = useRef(true);
+
+  // Update style when basemap changes (skipping initial mount)
   useEffect(() => {
+    if (isInitialBasemapMount.current) {
+      isInitialBasemapMount.current = false;
+      return;
+    }
     const map = mapRef.current;
     if (!map) return;
 
@@ -305,16 +316,22 @@ export default function ModelWeightMap({
   // Update dataset when regime, model, lead time, or region selection changes
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
 
-    const source = map.getSource('model-weights-source');
-    if (source) {
-      source.setData(getModelWeightsGeoJSON(currentRegime, currentModel, currentLeadTime));
+    if (map.isStyleLoaded()) {
+      const source = map.getSource('model-weights-source');
+      if (source) {
+        source.setData(getModelWeightsGeoJSON(currentRegime, currentModel, currentLeadTime));
+      } else {
+        attachWeightLayers(map, currentBasemap, currentRegime, currentModel, currentLeadTime);
+      }
+      renderDOMMarkers(map, currentRegime, currentModel, currentLeadTime, selectedRegion);
     } else {
-      attachWeightLayers(map, currentBasemap, currentRegime, currentModel, currentLeadTime);
+      map.once('load', () => {
+        attachWeightLayers(map, currentBasemap, currentRegime, currentModel, currentLeadTime);
+        renderDOMMarkers(map, currentRegime, currentModel, currentLeadTime, selectedRegion);
+      });
     }
-
-    renderDOMMarkers(map, currentRegime, currentModel, currentLeadTime, selectedRegion);
   }, [currentRegime, currentModel, currentLeadTime, selectedRegion]);
 
   // Render clickable DOM station markers with microclimatic badges
